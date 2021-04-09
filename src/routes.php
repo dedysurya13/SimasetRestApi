@@ -11,12 +11,12 @@ return function (App $app) {
     //validasi api key
     $cekAPIKey = function($request, $response, $next){
         $error = null;
-        if($request->getHeader('ApiKey')){
-            $key = $request->getHeader('ApiKey')[0];
+        if($request->getHeader('X-API-KEY')){
+            $key = $request->getHeader('X-API-KEY')[0];
             try{
-                $sql  = "SELECT * FROM aset_api WHERE api_key = :ApiKey";
+                $sql  = "SELECT * FROM aset_api WHERE api_key = :api_key";
                 $stmt = $this->db->prepare($sql);
-                $stmt->bindParam("ApiKey", $key);
+                $stmt->bindParam("api_key", $key);
                 $stmt->execute();
                 $result = $stmt->fetchObject();    
                 if(!$result){
