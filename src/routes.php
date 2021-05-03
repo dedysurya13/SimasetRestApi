@@ -7,8 +7,11 @@ use Slim\Http\Response;
 return function (App $app) {
     $container = $app->getContainer();
 
-
-    //validasi api key
+    /*
+    *
+    *   === VALIDASI API KEY ===
+    *
+    */
     $cekAPIKey = function($request, $response, $next){
         $error = null;
         if($request->getHeader('X-API-KEY')){
@@ -37,6 +40,12 @@ return function (App $app) {
 
 
 
+
+    /*
+    *
+    *   === KATEGORI ===
+    *
+    */
     //katgeori -semua kategori
     $app->get('/kategori', function(Request $request, Response $response, array $args){
         $sql = "SELECT kode_kategori, nama_kategori FROM aset_kategori_aset";
@@ -98,9 +107,9 @@ return function (App $app) {
         $sth->bindParam("nama_kategori", $namaKategori);
         $statusInsert=$sth->execute();
         if($statusInsert){
-            return $this->response->withJson(['status' => 'success', 'data'=>'success insert produk.'], 200);
+            return $this->response->withJson(['status' => 'success', 'data'=>'success insert kategori.'], 200);
         }else{
-            return $this->response->withJson(['status' => 'error', 'data'=>'error insert produk.'], 200);
+            return $this->response->withJson(['status' => 'error', 'data'=>'error insert kategori.'], 200);
         }
     })->add($cekAPIKey);
     
@@ -123,6 +132,23 @@ return function (App $app) {
             return $this->response->withJson(['status'=>'error', 'data'=>'error update kategori']);
         }
     });
+
+    //Kategori - hapus kategori
+    $app->delete('/kategori/{kodeKategori}', function(Request $request, Response $response, array $args){
+        $kodeKategori = trim(strip_tags($args['kodeKategori']));
+
+        $sql = "DELETE FROM aset_kategori_aset WHERE kode_kategori=:kode_kategori";
+        $sth = $this->db->prepare($sql);
+        $sth->bindParam("kode_kategori", $kodeKategori);
+        $statusDelete=$sth->execute();
+        if($statusDelete){
+            return $this->response->withJson(['status'=>'success', 'data'=>'success delete kategori']);
+        }else{
+            return $this->response->withJson(['status'=>'error', 'data'=>'error delete kategori']);
+        }
+    });
+
+
 
     //tampilan default
     $app->get('/[{name}]', function (Request $request, Response $response, array $args) use ($container) {
