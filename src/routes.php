@@ -37,7 +37,7 @@ return function (App $app) {
 
 
 
-    // //katgeori -semua kategori
+    //katgeori -semua kategori
     $app->get('/kategori', function(Request $request, Response $response, array $args){
         $sql = "SELECT kode_kategori, nama_kategori FROM aset_kategori_aset";
         $stmt = $this->db->prepare($sql);
@@ -50,9 +50,9 @@ return function (App $app) {
         return $response->withJson(['status' => 'success', 'data' => $result], 200);
     })->add($cekAPIKey);
 
-    // //kategori - satu kategori
-    $app->get("/kategori/{kode_kategori}", function(Request $request, Response $response, array $args){
-        $kode_kategori = trim(strip_tags($args['kode_kategori']));
+    //kategori - satu kategori
+    $app->get('/kategori/{kodeKategori}', function(Request $request, Response $response, array $args){
+        $kode_kategori = trim(strip_tags($args['kodeKategori']));
         $sql = "SELECT kode_kategori, nama_kategori FROM aset_kategori_aset WHERE kode_kategori=:kode_kategori";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam("kode_kategori", $kode_kategori);
@@ -65,7 +65,47 @@ return function (App $app) {
         return $response->withJson(['status' => 'success', 'data' => $result], 200);
     })->add($cekAPIKey);
 
+    //Kategori - tambah kategori
+    $app->post('/kategori', function(Request $request, Response $response, array $args){
+        $sqlID = "SELECT MAX(kode_kategori) FROM aset_kategori_aset";
+        $incrementID = $this->db->prepare($sqlID);
+        $incrementID->execute();
+        $kodeTerakhir = $incrementID->fetchColumn();
+
+        $tglSekarang = date("ymd");
+
+        $kodeHuruf=substr($kodeTerakhir,0,2);
+        $kodeTanggal=substr($kodeTerakhir,2,6);
+        $kodeAngka=substr($kodeTerakhir,8);
+
+        if ($kodeTanggal==$tglSekarang){
+            $kodeAngka=(int)$kodeAngka;
+            $kodeAngka=$kodeAngka + 10001;
+            $kodeAngka=substr($kodeAngka,1);
+            $kodeBaru = $kodeHuruf.$kodeTanggal.$kodeAngka;
+        }else{
+            $kodeAngka=10001;
+            $kodeAngka=substr($kodeAngka,1);
+            $kodeBaru="KT".$tglSekarang.$kodeAngka;;
+        }
+
+        $input = $request->getParsedBody();
+        $kodeKategori = $kodeBaru;
+        $namaKategori=trim(strip_tags($input['namaKategori']));
+        $sql = "INSERT INTO aset_kategori_aset (kode_kategori, nama_kategori) VALUES (:kode_kategori, :nama_kategori)";
+        $sth = $this->db->prepare($sql);
+        $sth->bindParam("kode_kategori", $kodeKategori);
+        $sth->bindParam("nama_kategori", $namaKategori);
+        $statusInsert=$sth->execute();
+        if($statusInsert){
+            return $this->response->withJson(['status' => 'success', 'data'=>'success insert produk.'], 200);
+        }else{
+            return $this->response->withJson(['status' => 'error', 'data'=>'error insert produk.'], 200);
+        }
+    })->add($cekAPIKey);
     
+
+
     //tampilan default
     $app->get('/[{name}]', function (Request $request, Response $response, array $args) use ($container) {
         // Sample log message
