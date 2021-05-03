@@ -104,7 +104,25 @@ return function (App $app) {
         }
     })->add($cekAPIKey);
     
+    //Kategori - ubah kategori
+    $app->put('/kategori/{kodeKategori}', function (Request $request, Response $response, array $args){
+        $input = $request->getParsedBody();
 
+        $kodeKategori = trim(strip_tags($args['kodeKategori']));
+        $namaKategori = trim(strip_tags($input['namaKategori']));
+
+        $sql = "UPDATE aset_kategori_aset SET nama_kategori=:nama_kategori WHERE kode_kategori=:kode_kategori";
+        $sth = $this->db->prepare($sql);
+        $sth->bindParam("kode_kategori", $kodeKategori);
+        $sth->bindParam("nama_kategori", $namaKategori);
+
+        $statusUpdate = $sth->execute();
+        if($statusUpdate){
+            return $this->response->withJson(['status'=>'success', 'data'=>'success update kategori.'], 200);
+        }else{
+            return $this->response->withJson(['status'=>'error', 'data'=>'error update kategori']);
+        }
+    });
 
     //tampilan default
     $app->get('/[{name}]', function (Request $request, Response $response, array $args) use ($container) {
