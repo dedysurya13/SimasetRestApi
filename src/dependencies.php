@@ -27,6 +27,7 @@ return function (App $app) {
         $conn = new PDO($server, $settings["user"], $settings["pass"]);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        //$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
         return $conn;
     };
 };
