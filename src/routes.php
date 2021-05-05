@@ -49,29 +49,62 @@ return function (App $app) {
     //katgeori -semua kategori
     $app->get('/kategori', function(Request $request, Response $response, array $args){
         $sql = "SELECT kode_kategori, nama_kategori FROM aset_kategori_aset";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        $mainCount = $stmt->rowCount();
-        $result = $stmt->fetchAll();
-        if($mainCount==0){
-            return $this->response->withJson(['status' => 'error', 'message' => 'no result data'], 200);
-        };
-        return $response->withJson(['status' => 'success', 'data' => $result], 200);
+        $query = $this->db->prepare($sql);
+        $result = $query->execute();
+        
+        if($result){
+            if($query->rowCount()){
+                $data = array(
+                    'kode'      => '1',
+                    'status'    => 'Sukses',
+                    'data'      => $query->fetchAll()
+                );
+            }else{
+                $data = array(
+                    'kode'      => '2',
+                    'status'    => 'Tidak ada data',
+                    'data'      => null
+                );
+            }
+        }else{
+            $data = array(
+                'kode'      => '100',
+                'status'    => 'Terdapat error',
+                'data'      => null
+            );
+        }
+        return $response->withJson($data);
     })->add($cekAPIKey);
 
     //kategori - satu kategori
     $app->get('/kategori/{kodeKategori}', function(Request $request, Response $response, array $args){
         $kode_kategori = trim(strip_tags($args['kodeKategori']));
         $sql = "SELECT kode_kategori, nama_kategori FROM aset_kategori_aset WHERE kode_kategori=:kode_kategori";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam("kode_kategori", $kode_kategori);
-        $stmt->execute();
-        $mainCount = $stmt->rowCount();
-        $result = $stmt->fetchObject();
-        if($mainCount==0){
-            return $this->response->withJson(['status' => 'error', 'message' => 'no result data'], 200);
-        };
-        return $response->withJson(['status' => 'success', 'data' => $result], 200);
+        $query = $this->db->prepare($sql);
+        $query->bindParam(':kode_kategori', $args['kodeKategori']);
+        $result = $query->execute();
+        if($result){
+            if($query->rowCount()){
+                $data = array(
+                    'kode'      => '1',
+                    'status'    => 'Sukses',
+                    'data'      => $query->fetch()
+                );
+            }else{
+                $data = array(
+                    'kode'      => '2',
+                    'status'    => 'Tidak ada data',
+                    'data'      => null
+                );
+            }
+        }else{
+            $data = array(
+                'kode'      => '100',
+                'status'    => 'Terjadi error',
+                'data'      => null
+            );
+        }
+        return $response->withJson($data);
     })->add($cekAPIKey);
 
     //Kategori - tambah kategori
@@ -100,53 +133,82 @@ return function (App $app) {
 
         $input = $request->getParsedBody();
         $kodeKategori = $kodeBaru;
-        $namaKategori=trim(strip_tags($input['namaKategori']));
+        $namaKategori= filter_var($input['namaKategori'], FILTER_SANITIZE_STRING);
         $sql = "INSERT INTO aset_kategori_aset (kode_kategori, nama_kategori) VALUES (:kode_kategori, :nama_kategori)";
-        $sth = $this->db->prepare($sql);
-        $sth->bindParam("kode_kategori", $kodeKategori);
-        $sth->bindParam("nama_kategori", $namaKategori);
-        $statusInsert=$sth->execute();
-        if($statusInsert){
-            return $this->response->withJson(['status' => 'success', 'data'=>'success insert kategori.'], 200);
+        $query = $this->db->prepare($sql);
+        $query->bindParam("kode_kategori", $kodeKategori);
+        $query->bindParam("nama_kategori", $namaKategori);
+        $query->execute();
+        $result=$query->rowCount();
+        if($result>0){
+            $data = array(
+                'kode'      => '1',
+                'status'    => 'Sukses',
+                'data'      => 'Data berhasil diubah'
+            );
         }else{
-            return $this->response->withJson(['status' => 'error', 'data'=>'error insert kategori.'], 200);
+            $data = array(
+                'kode'      => '100',
+                'status'    => 'Terdapat error',
+                'data'      => null
+            );
         }
+        return $response->withJson($data);
     })->add($cekAPIKey);
     
     //Kategori - ubah kategori
     $app->put('/kategori/{kodeKategori}', function (Request $request, Response $response, array $args){
         $input = $request->getParsedBody();
 
-        $kodeKategori = trim(strip_tags($args['kodeKategori']));
-        $namaKategori = trim(strip_tags($input['namaKategori']));
-
+        $kodeKategori = $args['kodeKategori'];
+        $namaKategori = filter_var($input['namaKategori'], FILTER_SANITIZE_STRING);
+        
         $sql = "UPDATE aset_kategori_aset SET nama_kategori=:nama_kategori WHERE kode_kategori=:kode_kategori";
-        $sth = $this->db->prepare($sql);
-        $sth->bindParam("kode_kategori", $kodeKategori);
-        $sth->bindParam("nama_kategori", $namaKategori);
-
-        $statusUpdate = $sth->execute();
-        if($statusUpdate){
-            return $this->response->withJson(['status'=>'success', 'data'=>'success update kategori.'], 200);
+        $query = $this->db->prepare($sql);
+        $query->bindParam('kode_kategori', $kodeKategori);
+        $query->bindParam('nama_kategori', $namaKategori);
+        $query->execute();
+        $result=$query->rowCount();
+        if($result>0){
+            $data = array(
+                'kode'      => '1',
+                'status'    => 'Sukses',
+                'data'      => 'Data berhasil diubah'
+            );
         }else{
-            return $this->response->withJson(['status'=>'error', 'data'=>'error update kategori']);
+            $data = array(
+                'kode'      => '100',
+                'status'    => 'Terdapat error',
+                'data'      => null
+            );
         }
-    });
+        return $response->withJson($data);
+    })->add($cekAPIKey);
 
     //Kategori - hapus kategori
     $app->delete('/kategori/{kodeKategori}', function(Request $request, Response $response, array $args){
-        $kodeKategori = trim(strip_tags($args['kodeKategori']));
-
+        
         $sql = "DELETE FROM aset_kategori_aset WHERE kode_kategori=:kode_kategori";
-        $sth = $this->db->prepare($sql);
-        $sth->bindParam("kode_kategori", $kodeKategori);
-        $statusDelete=$sth->execute();
-        if($statusDelete){
-            return $this->response->withJson(['status'=>'success', 'data'=>'success delete kategori']);
+        $query = $this->db->prepare($sql);
+        $query->bindParam(":kode_kategori", $args['kodeKategori']);
+        $query->execute();
+        $result=$query->rowCount();
+        if($result>0){
+            $data = array(
+                'kode'      => '1',
+                'status'    => 'Sukses',
+                'data'      => 'Data berhasil diubah'
+            );
         }else{
-            return $this->response->withJson(['status'=>'error', 'data'=>'error delete kategori']);
+            $data = array(
+                'kode'      => '100',
+                'status'    => 'Terdapat error',
+                'data'      => null
+            );
         }
-    });
+
+        return $response->withJson($data);
+    })->add($cekAPIKey);;
 
 
 
